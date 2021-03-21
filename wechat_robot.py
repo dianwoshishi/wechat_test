@@ -17,10 +17,12 @@ class XiaoI:
     url_base = '''http://i.xiaoi.com/robot/webrobot?&callback=__webrobot_processMsg&data='''
     def __init__(self):
         self.session = requests.Session()
+        self.getID({"type":"open"})
+        self.getID({"type":"sessionopen", "sessionId":self.sessionID,"userId":self.userID})
 
-    def getID(self):
+
+    def getID(self, data):
         # data = {"robotId":"webbot","body":{"content":""},"type":"txt"}
-        data = {"type":"open"}
         ini_url = self.url_base + urllib.parse.quote(json.dumps(data))
         
         r = self.session.get(ini_url)
@@ -31,7 +33,10 @@ class XiaoI:
             res = json.loads(text[22:-1])
             self.userID = res['userId']
             self.sessionID = res['sessionId']
-            break
+            # break
+            print(res)
+            
+
     # 小i
     def get_reply(self,content):
         # print( data)
@@ -50,6 +55,6 @@ class XiaoI:
 
     
 i = XiaoI()
-i.getID()
+
 while(1):
     i.get_reply(input())
