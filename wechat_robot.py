@@ -11,24 +11,45 @@ import json
 
 import time
 
-# 小i
-def get_reply(data):
-    # print( data)
-    ini_url = '''http://i.xiaoi.com/robot/webrobot?&callback=__webrobot_processMsg&data=%7B%22sessionId%22%3A%22c5a174da70a71be26a%22%2C%22robotId%22%3A%22webbot%22%2C%22userId%22%3A%22c4609cdc24a623d54b8be%22%2C%22body%22%3A%7B%22content%22%3A%22%E7%AE%97%E6%B3%95%22%7D%2C%22type%22%3A%22txt%22%7D&ts=1616252695681'''
+class XiaoI:
+    userID = ''
+    sessionID = ''
+    url_base = '''http://i.xiaoi.com/robot/webrobot?&callback=__webrobot_processMsg&data='''
+    def __init__(self):
+        self.session = requests.Session()
 
-    s = requests.Session()
+    def getID(self):
+        # data = {"robotId":"webbot","body":{"content":""},"type":"txt"}
+        data = {"type":"open"}
+        ini_url = self.url_base + urllib.parse.quote(json.dumps(data))
+        
+        r = self.session.get(ini_url)
+        for cookie in r.cookies:
+            print(cookie.name+"\t"+cookie.value)
+        texts = r.text.split(';')
+        for text in texts[:-1]:
+            res = json.loads(text[22:-1])
+            self.userID = res['userId']
+            self.sessionID = res['sessionId']
+            break
+    # 小i
+    def get_reply(self,content):
+        # print( data)
+        data = {"sessionId":self.sessionID,"userId":self.userID,"robotId":"webbot","body":{"content":content},"type":"txt"}
+        url = self.url_base + urllib.parse.quote(json.dumps(data))
 
-    r = s.get(ini_url)
-    texts = r.text.split(';')
-    for text in texts[:-1]:
-        res = json.loads(text[22:-1])
-        print(res['userId'])
-    data = {"sessionId":res['sessionId'],"robotId":"webbot","userId":res['userId'],"body":{"content":"百度"},"type":"txt"}
-    url = 'http://i.xiaoi.com/robot/webrobot?&callback=__webrobot_processMsg&data='+ json.dumps(data); 
-    r = s.get(url)
-    print(r.text)
+        r = self.session.get(url)
+        texts = r.text.split(';')
+        for text in texts[:-1]:
+            res = json.loads(text[22:-1])
+            if res['type'] == 'txt':
+                print(res['body']['content'])
+            if res['type'] == 'appmsg':
+                print(res['body']['name'] + ":" + res['body']['data'])
+            # print (res)
 
     
-
-
-get_reply("111")
+i = XiaoI()
+i.getID()
+while(1):
+    i.get_reply(input())
